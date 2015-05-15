@@ -1246,4 +1246,3 @@ class CreditEligibility(TimeStampedModel):
 
     class Meta:  # pylint: disable=missing-docstring, old-style-class
         unique_together = (('username', 'course'),)
-
