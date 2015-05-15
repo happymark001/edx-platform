@@ -1194,6 +1194,7 @@ class CreditCourse(models.Model):
     """Model for tracking the credit course."""
 
     course_key = CourseKeyField(max_length=255, db_index=True, unique=True)
+    enabled = models.BooleanField(default=False)
 
 
 class CreditProvider(TimeStampedModel):
