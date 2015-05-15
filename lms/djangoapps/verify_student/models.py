@@ -25,6 +25,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.utils.translation import ugettext as _, ugettext_lazy
+from model_utils.models import TimeStampedModel
 
 from boto.s3.connection import S3Connection
 from boto.s3.key import Key
@@ -1189,61 +1190,59 @@ class SkippedReverification(models.Model):
 
 
 class CreditCourse(models.Model):
-    """Model for tracking the credit course."""
+    """This model represents an institution that can grant credit for a course.
+    Each provider is identified by unique ID (e.g., 'ASU')
+    """
 
     course_key = CourseKeyField(max_length=255, db_index=True, unique=True)
 
 
-class CreditProvider(models.Model):
+class CreditProvider(TimeStampedModel):
     """This model represents an institution that can grant credit for a course.
     each provider is identified by unique id e.g ASU
     """
-    provide_id = models.CharField(max_length=255, db_index=True, unique=True)
+    provider_id = models.CharField(max_length=255, db_index=True, unique=True)
     display_name = models.CharField(max_length=255)
-    created_at = models.DateTimeField(auto_now_add=True)
-    modified_at = models.DateTimeField(auto_now=True)
 
 
-class CreditRequirement(models.Model):
-    """This model represents the credit requirments.each requirments is
-    uniquely identified by a “namespace” and a “name” and course id.
-    “configuration” will be dictionary, the format of which varies by the type
-    of requirement.
+class CreditRequirement(TimeStampedModel):
+    """This model represents a credit requirement.
+    Each requirement is uniquely identified by a `namespace` and a `name`. CreditRequirements
+    also include a `configuration` dictionary, the format of which varies by the type of requirement.
+    The configuration dictionary provides additional information clients may need to determine
+    whether a user has satisfied the requirement.
     """
+
     course = models.ForeignKey(CreditCourse, related_name="credit_requirement_course")
-    requirement_namespace = models.CharField(max_length=255)
-    requirement_name = models.CharField(max_length=255)
+    namespace = models.CharField(max_length=255)
+    name = models.CharField(max_length=255)
     configuration = models.TextField()
     active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    modified_at = models.DateTimeField(auto_now=True)
 
     class Meta:  # pylint: disable=missing-docstring, old-style-class
-        unique_together = (('course', 'requirement_namespace', 'requirement_name'),)
+        unique_together = (('namespace', 'name', 'course'),)
 
 
-class CreditRequirementStatus(models.Model):
+class CreditRequirementStatus(TimeStampedModel):
     """This model represents the status of each requirement."""
 
     REQUIREMENT_STATUS_CHOICES = (
         ("satisfied", "satisfied"),
     )
 
-    user = models.ForeignKey(User, db_index=True)
-    requirement = models.ForeignKey(CreditRequirement, related_name="credit_requirement_status")
+    username = models.CharField(max_length=255, db_index=True)
+    requirement = models.ForeignKey(CreditRequirement, related_name="status")
     status = models.CharField(choices=REQUIREMENT_STATUS_CHOICES, max_length=32)
-    created_at = models.DateTimeField(auto_now_add=True)
-    modified_at = models.DateTimeField(auto_now=True)
 
 
-class CreditEligibility(models.Model):
+class CreditEligibility(TimeStampedModel):
     """This model represents the Credit Eligibility of a user for particular course.
     when user satisfied the requirments a record will be added in this table.
     """
-    user = models.ForeignKey(User, db_index=True)
-    course = models.ForeignKey(CreditCourse, related_name="credit_eligibility_course")
-    provider = models.ForeignKey(CreditProvider, related_name="credit_requirement_provider")
-    created_at = models.DateTimeField(auto_now_add=True)
-    modified_at = models.DateTimeField(auto_now=True)
+    username = models.CharField(max_length=255, db_index=True)
+    course = models.ForeignKey(CreditCourse, related_name="credit_eligibility")
+    provider = models.ForeignKey(CreditProvider, related_name="credit_eligibility")
 
-    # TODO Composite index: (username, course)
+    class Meta:  # pylint: disable=missing-docstring, old-style-class
+        unique_together = (('username', 'course'),)
+
