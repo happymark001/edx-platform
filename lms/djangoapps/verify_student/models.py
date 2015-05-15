@@ -1191,9 +1191,7 @@ class SkippedReverification(models.Model):
 
 
 class CreditCourse(models.Model):
-    """This model represents an institution that can grant credit for a course.
-    Each provider is identified by unique ID (e.g., 'ASU')
-    """
+    """Model for tracking the credit course."""
 
     course_key = CourseKeyField(max_length=255, db_index=True, unique=True)
 
@@ -1208,6 +1206,7 @@ class CreditProvider(TimeStampedModel):
 
 class CreditRequirement(TimeStampedModel):
     """This model represents a credit requirement.
+
     Each requirement is uniquely identified by a `namespace` and a `name`. CreditRequirements
     also include a `configuration` dictionary, the format of which varies by the type of requirement.
     The configuration dictionary provides additional information clients may need to determine
@@ -1237,9 +1236,10 @@ class CreditRequirementStatus(TimeStampedModel):
 
 
 class CreditEligibility(TimeStampedModel):
-    """This model represents the Credit Eligibility of a user for particular course.
-    when user satisfied the requirments a record will be added in this table.
+    """A record of a user's eligibility for credit from a specific credit
+    provider for a specific course.
     """
+
     username = models.CharField(max_length=255, db_index=True)
     course = models.ForeignKey(CreditCourse, related_name="credit_eligibility")
     provider = models.ForeignKey(CreditProvider, related_name="credit_eligibility")
