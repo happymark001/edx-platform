@@ -38,6 +38,7 @@ from verify_student.ssencrypt import (
     generate_signed_message, rsa_encrypt
 )
 from xmodule_django.models import CourseKeyField
+from jsonfield.fields import JSONField
 
 
 log = logging.getLogger(__name__)
@@ -1216,7 +1217,7 @@ class CreditRequirement(TimeStampedModel):
     course = models.ForeignKey(CreditCourse, related_name="credit_requirement_course")
     namespace = models.CharField(max_length=255)
     name = models.CharField(max_length=255)
-    configuration = models.TextField()
+    configuration = JSONField()
     active = models.BooleanField(default=True)
 
     class Meta:  # pylint: disable=missing-docstring, old-style-class
