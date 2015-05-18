@@ -175,6 +175,8 @@ def show_cart(request):
     if is_any_course_expired:
         for expired_item in expired_cart_items:
             Order.remove_cart_item_from_order(expired_item)
+            order_item_course_id = getattr(expired_item, 'course_id')
+            remove_code_redemption(order_item_course_id, expired_item.id, expired_item, request.user)
         cart.update_order_type()
 
     appended_expired_course_names = ", ".join(expired_cart_item_names)
