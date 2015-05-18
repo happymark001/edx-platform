@@ -1199,8 +1199,10 @@ class CreditCourse(models.Model):
 
 class CreditProvider(TimeStampedModel):
     """This model represents an institution that can grant credit for a course.
-    each provider is identified by unique id e.g ASU
+
+    Each provider is identified by unique ID (e.g., 'ASU').
     """
+
     provider_id = models.CharField(max_length=255, db_index=True, unique=True)
     display_name = models.CharField(max_length=255)
 
@@ -1214,14 +1216,15 @@ class CreditRequirement(TimeStampedModel):
     whether a user has satisfied the requirement.
     """
 
-    course = models.ForeignKey(CreditCourse, related_name="credit_requirement_course")
+    course = models.ForeignKey(CreditCourse, related_name="credit_requirements")
     namespace = models.CharField(max_length=255)
     name = models.CharField(max_length=255)
     configuration = JSONField()
     active = models.BooleanField(default=True)
 
-    class Meta:  # pylint: disable=missing-docstring, old-style-class
-        unique_together = (('namespace', 'name', 'course'),)
+    class Meta(object):
+        """composite index"""
+        unique_together = ('namespace', 'name', 'course')
 
 
 class CreditRequirementStatus(TimeStampedModel):
@@ -1232,7 +1235,7 @@ class CreditRequirementStatus(TimeStampedModel):
     )
 
     username = models.CharField(max_length=255, db_index=True)
-    requirement = models.ForeignKey(CreditRequirement, related_name="status")
+    requirement = models.ForeignKey(CreditRequirement, related_name="statuses")
     status = models.CharField(choices=REQUIREMENT_STATUS_CHOICES, max_length=32)
 
 
@@ -1242,8 +1245,9 @@ class CreditEligibility(TimeStampedModel):
     """
 
     username = models.CharField(max_length=255, db_index=True)
-    course = models.ForeignKey(CreditCourse, related_name="credit_eligibility")
-    provider = models.ForeignKey(CreditProvider, related_name="credit_eligibility")
+    course = models.ForeignKey(CreditCourse, related_name="eligibilities")
+    provider = models.ForeignKey(CreditProvider, related_name="eligibilities")
 
-    class Meta:  # pylint: disable=missing-docstring, old-style-class
-        unique_together = (('username', 'course'),)
+    class Meta(object):
+        """composite index"""
+        unique_together = ('username', 'course')
